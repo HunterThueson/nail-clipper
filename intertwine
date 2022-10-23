@@ -20,7 +20,6 @@
 
 lend_a_hand () {
 	cat <<- _end_of_message
-
 		Usage: ${0##*/} [OPTIONS] [INPUT-OPTION(S)] input_0 [INPUT-OPTION(S)] input_1 [OUTPUT-OPTION(s)] output
 		
 		${0##*/} is a command line utility for "intertwining" two video files (of the same resolution/codec/etc.) together on a given
@@ -59,21 +58,9 @@ check_arg_qty () {
 }
 
 which_option () {
-    if [[ $1 == "-h" ]]
+    if [[ ( $1 == "-h" || $1 == "--help" ) ]]
     then
-        printf "This is the short help option: $1\n"
         lend_a_hand
-        printf "\nThis is the short help option: $1"
-        return 0
-    elif [[ $1 == "--help" ]]
-    then
-        printf "This is the verbose help option: $1\n"
-        lend_a_hand
-        printf "\nThis is the verbose help option: $1"
-        return 0
-    elif [[ $1 == "--test-regex-option" ]]
-    then
-        printf "This is the option you created to test your regex expression. Good job, it works!"
         return 0
     else
         fatal unknown option
