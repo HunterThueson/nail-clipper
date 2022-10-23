@@ -44,7 +44,7 @@ lend_a_hand () {
 }
 
 fatal () {
-    printf "$0: fatal: $@" >&2
+    printf "$0: fatal: $*" >&2
 	lend_a_hand
     exit 1
 }
