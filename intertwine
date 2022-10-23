@@ -40,11 +40,12 @@ lend_a_hand () {
 		                             back to the beginning of the shorter input.
 		    -d, --delete-excess:     instead of appending the remainder of the longer input, discard it and immediately end \$output at
 		                             the current timestamp.
+
 	_end_of_message
 }
 
 fatal () {
-    printf "$0: fatal: $*" >&2
+    printf "$0: fatal: $*\n" >&2
 	lend_a_hand
     exit 1
 }
@@ -63,6 +64,15 @@ which_option () {
     then
         lend_a_hand
         return 0
+    elif [[ ( $1 == "-i" || $1 == "--interval" ) ]]
+    then
+        return 2
+    elif [[ ( $1 == "-l" || $1 == "--loop-excess" ) ]]
+    then
+        return 3
+    elif [[ ( $1 == "-d" || $1 == "--delete-excess" ) ]]
+    then
+        return 4
     else
         fatal unknown option
     fi
@@ -76,7 +86,6 @@ check_arg_qty $*
 if [[ $1 =~ ^\-{1,2}[[:alpha:]]+(\-[[:alpha:]]+)?+$ ]]
 then
 	which_option $1
-    printf "\n\nYour option was valid! Good job.\n"
 else
     fatal what are you even talking about
 fi
