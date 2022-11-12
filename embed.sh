@@ -1,29 +1,21 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: MIT
 
 # Command for quickly and easily embedding a thumbnail with `ffmpeg`
 
-# TODO: manually check for and set/unset shell options as necessary
-
 show_help_message () {
     cat <<- _help-message
-		Usage: ${0##*/} [options] input.mp4 input_image output.mp4
-
-		Options:
-		    -h, --help   =   show help message
-
+		Usage: ${0##*/} [input.mp4] [input{.png|.jpg|.jpeg|.webp}] output.mp4
+		
 		A utility for quickly embedding a thumbnail into a video file using ffmpeg
 
-		Except when using the \`-h|--help\` option, you should always pass exactly three arguments.
-		Two of them should be .mp4 files, and one should be an image file in one of the formats
-		listed above. The order of the .mp4 files MATTERS. The first mp4 file is always the input and
-		the second is always the output file. The input video and input image files can be listed in
-		any order, so long as the input video file appears before the output video file.
+		Always pass three arguments to ${0##*/}. Two of them should be .mp4 files, and one
+		should be an image file in one of the formats listed above. The order of the .mp4
+		files MATTERS. The first mp4 file is the input and the second is the output file.
 		_help-message
 };
 
 fatal () {
-    printf "fatal error: $0: $*\n" >&2
+    printf "fatal error: $0: $*\n"
 	show_help_message
     exit 1
 };
@@ -46,7 +38,7 @@ fatal () {
 
 input_video=
 for i in $*; do
-    case ${i##*.} in  
+    case ${i##*.} in
 		('-h'|'--help') show_help_message; exit 0;;
         (mp4) if [[ $input_video = "" ]]; then input_video=$i; else output_video=$i; fi;;
         (png|jpg|jpeg|webp) thumbnail=$i;;
@@ -57,13 +49,13 @@ done
 
 # Make sure input video exists
 if [[ ! -e $input_video ]]; then 
-    printf "file $input_video does not exist!" >&2
+    printf "file $input_video does not exist!"
     exit 1
 fi
 
 # Make sure thumbnail file exists
 if [[ ! -e $thumbnail ]]; then
-    printf "file $thumbnail does not exist!" >&2
+    printf "file $thumbnail does not exist!"
     exit 1
 fi
 
@@ -81,7 +73,7 @@ else
     printf "Thumbnail: $thumbnail\n"
 fi
 
-# Finally, now that all contingencies have been checked, embed the thumbnail in the video!
+# Finally -- embed the thumbnail in the video!
 ffmpeg -hide_banner \
     -i $input_video -i $thumbnail \
     -map 0 -map 1 \
@@ -93,9 +85,9 @@ ffmpeg -hide_banner \
 if [[ $? = 0 ]]; then
     printf "\nOperation Complete! Generated file: $output_video"
 elif [[ $? = 1 ]]; then
-    printf "\nUnable to process video"; exit 1 >&2
+    printf "\nUnable to process video"; exit 1
 else
-    printf "\nUnknown exit code from \`ffmpeg\`"; exit 1 >&2
+    printf "\nUnknown exit code from \`ffmpeg\`"; exit 1
 fi
 
 exit 0
