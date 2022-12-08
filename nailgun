@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 
-# Quick script to generate thumbnails from a given video to ~/.temp/
+# Quick script to rapidly generate a bunch of thumbnails (like a machine gun, 
+# hence the name) from a given video to ~/.temp/ (by default) or a given directory
 
 #############################
 #  Set/unset shell options  #
