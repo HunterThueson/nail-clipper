@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-
+# SPDX-License-Identifier: MIT
+#
 # Command for quickly and easily embedding a thumbnail with `ffmpeg`
+#
 
 show_help_message () {
     cat <<- _help-message
