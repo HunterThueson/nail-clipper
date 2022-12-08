@@ -8,5 +8,8 @@ Use `nailgun` to rapidly generate a lot of thumbnails from a given video file (l
 hence the name). Use the `-f|--frameskip N` flag to generate a thumbnail every N frames (default: 7).
 Use the `-d|--output-dir DIR` flag to set DIR as the target output directory (default: `~/.temp/`).
 
+Use `nailpolish` to quickly embed a given thumbnail in a given `.mp4` file. See `nailpolish --help`
+for usage.
+
 ## License
 This software is released under the [MIT License](./LICENSE).
