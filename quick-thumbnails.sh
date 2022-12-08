@@ -103,8 +103,7 @@ fi
 #  Generate thumbnails  #
 #########################
 
-if [[ $frameskip = 0 ]]; then
-#-vf "setpts='N/(30*TB)'"
+if [[ ( $frameskip = 0 || $frameskip = 1 ) ]]; then
     ffmpeg -hide_banner -i $1 -f image2 $output_dir/nail_$filename-%04d.png
 else
     ffmpeg -hide_banner -i $1 -vf "select='not(mod(n,$frameskip))',setpts='N/(30*TB)'" -f image2 $output_dir/nail_$filename-%04d.png
