@@ -24,7 +24,7 @@ fi
 declare -i frameskip
 frameskip=7
 
-output_dir="$HOME/.temp"                         # thumbnail output directory
+output_dir="$HOME/pictures/thumbnails/"                         # thumbnail output directory
 
 start_time=""                                    # timecode at which to start thumbnail generation
 end_time=""                                      # timecode at which to end thumbnail generation
