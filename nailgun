@@ -24,8 +24,10 @@ fi
 declare -i frameskip
 frameskip=7
 
-# thumbnail output directory
-output_dir="$HOME/.temp"
+output_dir="$HOME/.temp"                         # thumbnail output directory
+
+start_time=""                                    # timecode at which to start thumbnail generation
+end_time=""                                      # timecode at which to end thumbnail generation
 
 ###########################
 #  Function declarations  #
@@ -71,6 +73,8 @@ while [[ $1 != "" ]]; do
     case $1 in
         "-f"|"--frameskip") frameskip=$2; shift 2;;
         "-d"|"--output-dir") output_dir=${2%/}; shift 2;;
+        "-s"|"-ss"|"--start") start_time="$2"; shift 2;;
+        "-e"|"-to"|"--end") end_time="$2"; shift 2;;
         (*) break;;
     esac
 done
@@ -101,18 +105,39 @@ if [[ ! -d $output_dir ]]; then
     done
 fi
 
+################
+# Set options #
+###############
+
+declare -i counter;
+counter=0
+
+options=()
+
+if [[ ! ( $frameskip = 0 || $frameskip = 1 ) ]]; then
+    options[${counter}]="-vf \"select='not(mod(n,${frameskip}))'\""
+    counter=$((${counter} + 1 ))
+fi
+
+if [[ ! ${start_time} = "" ]]; then
+    options[${counter}]="-ss ${start_time}"
+    counter=$((${counter} + 1 ))
+fi
+
+if [[ ! ${end_time} = "" ]]; then
+    options[${counter}]="-to ${end_time}"
+    counter=$((${counter} + 1 ))
+fi
+
 #########################
 #  Generate thumbnails  #
 #########################
 
-if [[ ( $frameskip = 0 || $frameskip = 1 ) ]]; then
-    ffmpeg -hide_banner -i $1 -f image2 $output_dir/nail_$filename-%04d.png
-else
-    ffmpeg -hide_banner -i $1 -vf "select='not(mod(n,$frameskip))',setpts='N/(30*TB)'" -f image2 $output_dir/nail_$filename-%04d.png
-fi
+ffmpeg -hide_banner -i $1 ${options[*]} -f image2 $output_dir/nail_$filename-%04d.png
 
 #####################
 #  Exit gracefully  #
 #####################
 
 cleanup 0
+
