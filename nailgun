@@ -115,7 +115,7 @@ counter=0
 options=()
 
 if [[ ! ( $frameskip = 0 || $frameskip = 1 ) ]]; then
-    options[${counter}]="-vf \"select='not(mod(n,${frameskip}))'\""
+    echo "-vf \"select='not(mod(n,${frameskip}))'\"" | xargs options[${counter}]={}
     counter=$((${counter} + 1 ))
 fi
 
