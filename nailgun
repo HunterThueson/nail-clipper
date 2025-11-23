@@ -22,7 +22,7 @@ fi
 
 # generate a thumbnail every $frameskip frames
 declare -i frameskip
-frameskip=7
+frameskip=300
 
 output_dir="$HOME/pictures/thumbnails/"                         # thumbnail output directory
 
