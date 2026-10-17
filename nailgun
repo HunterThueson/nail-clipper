@@ -24,7 +24,8 @@ fi
 declare -i frameskip
 frameskip=300
 
-output_dir="${PWD}/thumbnails/"                         # thumbnail output directory
+prefix=""                                        # string to append at beginning of file names
+output_dir="${PWD}/thumbnails/"                  # thumbnail output directory
 
 start_time=""                                    # timecode at which to start thumbnail generation
 end_time=""                                      # timecode at which to end thumbnail generation
@@ -49,16 +50,24 @@ cleanup () {
 # NOTE: must be passed one argument to use as exit code
 help_message () {
     printf '''
-Usage: nailgun [options] input_file
+nailgun: a tool for rapidly generating thumbnails from a video file
+
+Usage: nailgun [OPTIONS] input_file
 
 Options:
-  -h | --help                         Display this help message and exit
-  -f | --frameskip [int]              Set the number of frames between each generated thumbnail
-  -d | --output-dir [path]            Set the destination directory for generated thumbnails
-  -s | -ss | --start [timecode]       Begin generating thumbnails from this point in the video
-                                      (see "Timecodes" section below)
-  -e | -to | --end [timecode]         Stop generating thumbnails after this point in the video
-                                      (see "Timecodes")
+    -h |     | --help           Display this help message and exit
+    -s | -ss | --start          Begin generating thumbnails from this point in the video
+                                (see "Timecodes" section below)
+    -e | -to | --end            Stop generating thumbnails after this point in the video
+                                (see "Timecodes")
+  ! -p |     | --prefix         Set prefix to append to the beginning of filenames
+                                (default: none)
+    -d |     | --output-dir     Set the destination directory for generated thumbnails
+                                (default: $PWD/thumbnails)
+    -f |     | --frameskip      Set the number of frames between each generated thumbnail
+                                (default: 300)
+
+  Options marked with a leading "!" are accepted but not yet implemented.
 
 Timecodes:
   Timecodes can be formatted in any way `ffmpeg` accepts. This includes:
@@ -81,7 +90,7 @@ fatal () {
 
 # give the user one more chance to enter a valid answer
 # takes one argument: the number of retries already given
-bad_answer (){
+bad_answer () {
     [[ $1 > 0 ]] && fatal could not understand user input
     printf "\nI couldn't understand your answer. Please enter yes or no: "
     read answer
@@ -90,6 +99,12 @@ bad_answer (){
     else
         fatal could not understand user input
     fi
+};
+
+join_array () {
+  local IFS="$1"
+  shift
+  echo "$*"
 };
 
 #####################
@@ -102,6 +117,7 @@ while [[ $1 != "" ]]; do
     case $1 in
         "-h"|"--help") help_message 0;;
         "-f"|"--frameskip") frameskip=$2; shift 2;;
+        "-p"|"--prefix") prefix=$2; shift 2;;
         "-d"|"--output-dir") output_dir=${2%/}; shift 2;;
         "-s"|"-ss"|"--start") start_time="$2"; shift 2;;
         "-e"|"-to"|"--end") end_time="$2"; shift 2;;
@@ -110,7 +126,7 @@ while [[ $1 != "" ]]; do
 done
 
 # TODO: Test that non-option arguments are files that exist and are *.mp4
-
+# TODO: Add option `-p` | `--prefix_with_file`, which sets $prefix to filename
 # TODO: Test that variable following '-f' is an int
 
 intermediate_filename=${1##*/}
@@ -127,9 +143,9 @@ if [[ ! -d $output_dir ]]; then
     printf "Do you want to create it? (y/N): "; read answer
     while [[ ! $answer = "" ]]; do
         case $answer in
-            ("y"/"Y"/"yes"/"YES") mkdir $output_dir && \
+            ("y"|"Y"|"yes"|"YES") mkdir $output_dir && \
                 printf "\nCreated output directory: $output_dir\n"; break;;
-            ("n"/"N"/"no"/"NO") printf "Aborting...\n"; cleanup 1;;
+            ("n"|"N"|"no"|"NO") printf "Aborting...\n"; cleanup 1;;
             (*) bad_answer $retries; answer=$?; retries=1;;
         esac
     done
@@ -140,30 +156,35 @@ fi
 ###############
 
 declare -i counter;
+
+pre_options=()
+vf_options=()
+post_options=()
+
+vf_options[${counter}]="select='not(mod(n,${frameskip}))'"
+counter=$((${counter} + 1 ))
+
+vf_options[$counter]="scale=1024:1024:force_original_aspect_ratio=decrease"
+
 counter=0
 
-options=()
-
-if [[ ! ( $frameskip = 0 || $frameskip = 1 ) ]]; then
-    echo "-vf \"select='not(mod(n,${frameskip}))'\"" | xargs options[${counter}]={}
-    counter=$((${counter} + 1 ))
-fi
-
 if [[ ! ${start_time} = "" ]]; then
-    options[${counter}]="-ss ${start_time}"
+    pre_options[${counter}]="-ss ${start_time}"
     counter=$((${counter} + 1 ))
 fi
 
 if [[ ! ${end_time} = "" ]]; then
-    options[${counter}]="-to ${end_time}"
+    post_options[${counter}]="-to ${end_time}"
     counter=$((${counter} + 1 ))
 fi
+
+post_options[${counter}]="-f image2"
 
 #########################
 #  Generate thumbnails  #
 #########################
 
-ffmpeg -hide_banner -i $1 ${options[*]} -f image2 $output_dir/nail_$filename-%04d.png
+ffmpeg -hide_banner ${pre_options[@]} -i $1 -vf "$(join_array , "${vf_options[@]}")" ${post_options[@]} $output_dir/$prefix_$filename-%04d.png
 
 #####################
 #  Exit gracefully  #
