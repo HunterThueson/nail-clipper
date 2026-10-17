@@ -45,9 +45,38 @@ cleanup () {
     fi
 };
 
+# Help function
+# NOTE: must be passed one argument to use as exit code
+help_message () {
+    printf '''
+Usage: nailgun [options] input_file
+
+Options:
+  -h | --help                         Display this help message and exit
+  -f | --frameskip [int]              Set the number of frames between each generated thumbnail
+  -d | --output-dir [path]            Set the destination directory for generated thumbnails
+  -s | -ss | --start [timecode]       Begin generating thumbnails from this point in the video
+                                      (see "Timecodes" section below)
+  -e | -to | --end [timecode]         Stop generating thumbnails after this point in the video
+                                      (see "Timecodes")
+
+Timecodes:
+  Timecodes can be formatted in any way `ffmpeg` accepts. This includes:
+
+  00:12             12 seconds into the video; "minutes" section must be included in this case
+  12:34             minute 12 + 34 seconds
+  12:34.567         numbers after decimal point refer to the timestamp of an exact frame
+  00:12:34          minute 12 + 34 seconds; the "hours" section is included but not needed
+  00:12:34.567      hours section included, exact frame specified
+
+  See `ffmpeg` documentation for more details.
+    '''
+    cleanup $1
+}
+
 fatal () {
     printf "$0: fatal: $*\n" >&2
-    cleanup 1
+    help_message 1
 }
 
 # give the user one more chance to enter a valid answer
@@ -71,6 +100,7 @@ bad_answer (){
 
 while [[ $1 != "" ]]; do
     case $1 in
+        "-h"|"--help") help_message 0;;
         "-f"|"--frameskip") frameskip=$2; shift 2;;
         "-d"|"--output-dir") output_dir=${2%/}; shift 2;;
         "-s"|"-ss"|"--start") start_time="$2"; shift 2;;
